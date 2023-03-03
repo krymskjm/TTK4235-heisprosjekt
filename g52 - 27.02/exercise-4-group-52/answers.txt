@@ -1,6 +1,0 @@
-Engineering questons:
-
-- Cannot know of all possible errors and if we can - it is alot of work to handle all of them. Easier to detect success and handle all errors as worst case --> retry
-- To handle the error immediately, one would have to know what the error is. By deffering it to the backup, we dont handle the error, but just try again from a safe checkpoint. 
-- What if there is an error on the separate-supervisor? It would also need a supervisor and so on... Therefore it is preferable with a recursive form of process pairs. 
-
