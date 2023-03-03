@@ -15,6 +15,7 @@ int main(){
     elevio_motorDirection(DIRN_UP);
 
     while(1){
+        int test = elevio_floorIndicator();
         int floor = elevio_floorSensor();
         printf("floor: %d \n",floor);
 
