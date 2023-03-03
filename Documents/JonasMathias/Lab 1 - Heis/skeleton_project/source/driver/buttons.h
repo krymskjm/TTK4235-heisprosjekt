@@ -1,3 +1,9 @@
-#pragma once
+#ifndef BUTTONS
+#define BUTTONS
 
-struct Button;
+typedef struct{
+    int floor;
+    ButtonType button_type;
+} Button;
+
+#endif 
