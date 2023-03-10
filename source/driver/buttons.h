@@ -1,3 +1,12 @@
-#pragma once
+#ifndef BUTTONS
+#define BUTTONS
 
-struct Button;
+#include <stdio.h>
+#include "elevio.h"
+
+typedef struct{
+    int floor;
+    ButtonType button_type;
+} Button;
+
+#endif 

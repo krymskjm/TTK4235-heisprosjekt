@@ -9,7 +9,7 @@
 //  "--key value"
 //  Lines not starting in "--" are ignored.
 //  Keys are *not* case-sensitive
-//  Enum values are *not* case-sensitive
+//  Enum values are *not* case-sensitive>
 //
 // keyuments:
 //  file:   Name of the file to load.

@@ -3,7 +3,7 @@
 
 #define N_FLOORS 4
 
-typedef enum { 
+typedef enum {
     DIRN_DOWN   = -1,
     DIRN_STOP   = 0,
     DIRN_UP     = 1
