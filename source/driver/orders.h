@@ -2,22 +2,20 @@
 #define ORDERS
 
 #include <stdio.h>
+#include "elevio.h"
 
+#define MAX_FLOORS 4
+
+// Initialize the elevator state
 typedef struct {
-    int order;
-    int new_floor;
-} Orders;
-// determines the path of the elevator during runtime
-int * elevator_path[];
-
-
-// Queue manipulators
-void add_new_floor_to_queue(int new_floor);
-void del_floor_from_queue(int floor);
-void sort_queue();
-
-// UML-class diagram functions
-void update_queue();
-void update_newfloor();
+    int current_floor;
+    int direction; // 1 for up, -1 for down, 0 for stopped
+    int cab_floors[MAX_FLOORS];
+    int num_cab_floors;
+    int call_up_floors[MAX_FLOORS];
+    int num_call_up_floors;
+    int call_down_floors[MAX_FLOORS];
+    int num_call_down_floors;
+} ElevatorState;
 
 #endif
