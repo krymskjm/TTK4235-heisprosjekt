@@ -23,11 +23,14 @@ static States curr_state = NEUTRAL;
 static int between_floors = -1;
 static int new_state = NEUTRAL;
 static MotorDirection curr_motor_dir;
-static int curr_floor;
+static int curr_floor = -1;
+static int new_floor; 
 
-void init();
+void init_controller();
 
 void update_state();
+
+void update_new_floor(int floor);
 
 void set_motor_dir(MotorDirection dir);
 
