@@ -4,7 +4,7 @@
 #include <time.h>
 #include "driver/elevio.h"
 #include "driver/elev_controller.h"
-#include "driver/elevator.h"
+// #include "driver/elevator.h"
 #include "driver/orders.h"
 
 
@@ -64,36 +64,38 @@ int main(){
     //     nanosleep(&(struct timespec){0, 20*1000*1000}, NULL);
     // }
 
-
-
     elevio_init();
-    init_controller();
-    init_queue();
-    update_state();
+    static ElevatorState queue;
+    init_queue(&queue);
+    update_state(&queue);
+    init_controller(&queue);
+    // TEST: set startfloor to 1
+    add_cab_floor(&queue, 1);
+    queue.new_floor = 1;
+
     printf("running\n");
-    //////UPDATE NEWFLOOR///////
-    add_cab_floor(&queue, 3);
-    update_new_floor(queue.cab_floors[0]);
+        printf("cab_queue, len(%d): ", queue.num_cab_floors);
+    for (int i = 0; i < queue.num_cab_floors; i++){
+        printf("%d ", queue.cab_floors[i]);
+    }
+    printf("\n");
 
 
     while (1)
     {
         //////////////////Update state/////////////
-        update_state();
+        // printf("main newfloor: %d\n", queue.new_floor);
+        update_state(&queue);
         queue.current_floor = elevio_floorSensor();
-        //printf("main %d\n", queue.current_floor);
 
-        // when buttonpressed update queue
+        // when buttonpressed add to queue
         button_handler(&queue);
-        
         // DEBUG: print out cab queue
         printf("cab_queue, len(%d): ", queue.num_cab_floors);
         for (int i = 0; i < queue.num_cab_floors; i++){
             printf("%d ", queue.cab_floors[i]);
         }
         printf("\n");
-
-
         nanosleep(&(struct timespec){0, 20*1000*1000}, NULL);
     }
     
