@@ -4,63 +4,44 @@
 #include <time.h>
 #include "driver/elevio.h"
 #include "driver/elev_controller.h"
-#include "driver/elevator.h"
+// #include "driver/elevator.h"
+#include "driver/orders.h"
 
 
 
 int main(){
+
     elevio_init();
-    /*
-    
-    //Dette er eksempelkode som var i main fra før.
-    printf("=== Example Program ===\n");
-    printf("Press the stop button on the elevator panel to exit\n");
-
-    elevio_motorDirection(DIRN_UP);
-    
-    while(1){
-        int floor = elevio_floorSensor();
-        printf("floor: %d \n",floor);
-
-        if(floor == 0){
-            elevio_motorDirection(DIRN_UP);
-        }
-
-        if(floor == N_FLOORS-1){
-            elevio_motorDirection(DIRN_DOWN);
-        }
-
-
-        for(int f = 0; f < N_FLOORS; f++){
-            for(int b = 0; b < N_BUTTONS; b++){
-                int btnPressed = elevio_callButton(f, b);
-                elevio_buttonLamp(f, b, btnPressed);
-            }
-        }
-
-        if(elevio_obstruction()){
-            elevio_stopLamp(1);
-        } else {
-            elevio_stopLamp(0);
-        }
+    static ElevatorState queue;
+    init_queue(&queue);
+    // update_state(&queue);
+    init_controller(&queue);
+    queue.obstructed = 0;
+    elevio_doorOpenLamp(0);
+    printf("running\n");
+    printf("\n");
+    // queue.new_floor = 2;         //for testing
+    while (1)
+    {   
         
         if(elevio_stopButton()){
-            elevio_motorDirection(DIRN_STOP);
-            break;
+            stop(&queue);
+            queue.curr_state = 1;
+            //printf("curr_state: %d (main.c)\n",queue.curr_state);
         }
+
+        update_state(&queue);
+        button_poller(&queue);
+        print_table();
         
+
+        printf("last_floor: %d\n", (queue.last_floor)+1);
+        printf("is below: %d\n", order_below_curr_floor(&queue));
+        printf("is above: %d\n", order_above_curr_floor(&queue));
+        printf("\n");
         nanosleep(&(struct timespec){0, 20*1000*1000}, NULL);
     }
-    */
-    init();
-    while (1){
-        int floor = elevio_floorSensor();
-        printf("floor: %d \n",floor);
-        update_state(&new_state);
-        printf("State: %d \n", new_state);
-        printf("curr_motor_dir: %d \n", curr_motor_dir);
-        nanosleep(&(struct timespec){0, 20*1000*1000}, NULL);
-    }
+    
    
 
     return 0;

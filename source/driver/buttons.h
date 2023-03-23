@@ -3,10 +3,10 @@
 
 #include <stdio.h>
 #include "elevio.h"
+#include "orders.h"
+#include "elev_controller.h"
 
-typedef struct{
-    int floor;
-    ButtonType button_type;
-} Button;
+void button_poller(ElevatorState * e);
+
 
 #endif 

@@ -1,48 +1,53 @@
 #include "elev_controller.h"
 
-static int new_floor = 3; // TODO: ENDRE DENNE FUNKSJONEN TIL VARIABELEN I order.h
 
+// LOGG:
+// 15:08 kommenterte ut FLOOR_HIT ASCENDING
+// 16.03.2023 14:35 Implementerer kø trekker fra etasje fra køen i FLOOR_HIT_ASCENDING
+// 17.03.2023 13:49 Oppdaterer queue dir medlemsvariabel i FSM
 
 /**
- * @brief Updates the state. Initiating the state function. Uses enum States to access different cases.
+ * @brief Set elevator to neutral state. Called in beginning
+ * of the program.
  * 
- * @param state Chooses what the state is being updated to.
  */
-
-void init() {
+void init_controller(ElevatorState * e) {
     while (elevio_floorSensor() == -1) {
-        set_motor_dir(DIRN_DOWN);
+        set_motor_dir(e, DIRN_DOWN);
     }
-    set_motor_dir(DIRN_STOP);
+    set_motor_dir(e, DIRN_STOP);
+    if (elevio_floorSensor() != -1)
+        e->last_floor = elevio_floorSensor();
+    e->curr_dir = DIRN_STOP;
 }
 
-void update_state(){
-    if (new_floor == -1) return;
-    switch (new_state)
+void update_state(ElevatorState * e){
+    switch (e->curr_state)
     {
     case ASCENDING:
-        ascending();
+        ascending(e);
         break;
     case FLOOR_HIT_ASCENDING:
-        floor_hit_ascending();
+        floor_hit_ascending(e);
         break;
     case STOP_ASCENDING:
-        stop_ascending();
+        stop_ascending(e);
         break;
     case NEUTRAL:
-        neutral();
+
+        neutral(e);
         break;
     case DESCENDING:
-        descending();
+        descending(e);
         break;
     case FLOOR_HIT_DESCENDING:
-        floor_hit_descending();
+        floor_hit_descending(e);
         break;
     case STOP_DESCENDING:
-        stop_descending();
+        stop_descending(e);
         break;
     case STOP:
-        stop();
+        stop(e);
     default:
         break;
     }
@@ -53,99 +58,176 @@ void update_state(){
  * 
  * @param dir The direction of the elevator motor.
  */
-void set_motor_dir(MotorDirection dir){
+void set_motor_dir(ElevatorState * e, MotorDirection dir){
     // assert(e!=NULL);
     curr_motor_dir = dir;
     elevio_motorDirection(curr_motor_dir);
+    e->curr_dir = dir;
 }
 
-/**
- * @brief If a button is pressed the button will illumiate. 
- * When task is done, the button light will stop.
- * 
- */
-
-//void elevio_buttonLamp(int floor, struct ButtonType button, int value);
 
 /**
  * @brief This is the state function where the elevator is waiting to hit a floor.
- * When the elevator hits a floor, the new_state will be updated to FLOOR_HIT_ASCENDING.
+ * When the elevator hits a floor, the e->curr_state will be updated to FLOOR_HIT_ASCENDING.
  * 
  * @param e 
  */
-void ascending(){
-    if (elevio_floorSensor() < new_floor){
-        set_motor_dir(DIRN_UP);
-        new_state = ASCENDING;
-    } else {
-        new_state = FLOOR_HIT_ASCENDING;
+void ascending(ElevatorState * e){
+    printf("ascending\n");
+    e->curr_state = ASCENDING;
+    int floor = elevio_floorSensor();
+    if (floor != -1) {
+        set_motor_dir(e, DIRN_STOP);
+        e->curr_state = FLOOR_HIT_ASCENDING;
     }
 }
 
-void floor_hit_ascending(){
-    if (elevio_floorSensor() == new_floor){
-        set_motor_dir(DIRN_STOP);
-        new_state = STOP_ASCENDING;
+void floor_hit_ascending(ElevatorState * e){
+    printf("floor_hit_ascending, etg: %d \n", (elevio_floorSensor()+1));
+    e->last_floor = elevio_floorSensor();
+    e->curr_state = FLOOR_HIT_ASCENDING;
+    if (is_flagged(e->last_floor, UP)){
+        set_motor_dir(e, DIRN_STOP);
+        remove_flag(e->last_floor, UP);
+        e->curr_state = STOP_ASCENDING;
+
+        if(elevio_floorSensor() != -1){
+            elevio_floorIndicator(elevio_floorSensor());
+        }
+        door_open(e);
+        
+
     } else{
-        new_state = ASCENDING;
+        set_motor_dir(e, DIRN_UP);
+        e->curr_state = ASCENDING;
+    }
+    // else {
+    //     printf("WROOONG floor hit ascending\n");elevio_floorSensor
+}
+
+void stop_ascending(ElevatorState * e){
+    printf("stopAscending, etg: %d \n", (elevio_floorSensor()+1));
+    e->curr_state = STOP_ASCENDING;
+
+    check_obstructed(e);
+    if(e->obstructed){
+        return;
+    }
+    else if (order_above_curr_floor(e)){
+        set_motor_dir(e, DIRN_UP);
+        e->curr_state = ASCENDING;
+    }
+    else {
+        set_motor_dir(e, DIRN_STOP);
+        e->curr_state = NEUTRAL;
     }
 }
 
-void stop_ascending(){
-    printf("stopAscending\n");
-    if (elevio_floorSensor() < new_floor){
-        printf("florrsensor < newfloor\n");
-        set_motor_dir(DIRN_UP);
-        new_state = ASCENDING;
-    } else {
-        set_motor_dir(DIRN_STOP);
-        new_state = NEUTRAL;
-    }
-}
+void neutral(ElevatorState * e){
+    printf("in neutral\n");
+    e->curr_state = NEUTRAL;
 
-void neutral(){
-    if (elevio_floorSensor() < new_floor){
-        printf("VI kom hit\n\n");
-        set_motor_dir(DIRN_UP);
-        new_state = STOP_ASCENDING;
-        printf("State: %d \n", new_state);
-    } else if (elevio_floorSensor() > new_floor){
-        set_motor_dir(DIRN_STOP);
-        new_state = STOP_DESCENDING;
+    if (order_above_curr_floor(e)){       // newfloor above
+        //printf("VI kom hit\n\n");
+        //set_motor_dir(e, DIRN_STOP);   //Boilerplate, men) mealy
+        e->curr_state = STOP_ASCENDING;
+        //printf("State: %d \n", e->curr_state);
+    } else if (order_below_curr_floor(e)){
+        //set_motor_dir(e, DIRN_STOP);   //Boilerplate, men mealy
+        e->curr_state = STOP_DESCENDING;
     } else{
-        new_state = NEUTRAL;
+        e->curr_state = NEUTRAL;
     }
 }
 
-void stop_descending(){
-    if (elevio_floorSensor() > new_floor){
-        set_motor_dir(DIRN_DOWN);
-        new_state = DESCENDING;
+void stop_descending(ElevatorState * e){
+    printf("stop descent, etg: %d \n", (elevio_floorSensor()+1));
+    e->curr_state = STOP_DESCENDING;
+    
+    check_obstructed(e);
+    if(e->obstructed){
+        return;
+    }
+    else if (order_below_curr_floor(e)){
+        set_motor_dir(e, DIRN_DOWN);
+        e->curr_state = DESCENDING;
     } else {
-        set_motor_dir(DIRN_STOP);
-        new_state = NEUTRAL;
+        set_motor_dir(e, DIRN_STOP);
+        e->curr_state = NEUTRAL;
     }
 }
 
-void descending(){
-    if (elevio_floorSensor() > new_floor){
-        set_motor_dir(DIRN_DOWN);
-        new_state = DESCENDING;
-    } else {
-        new_state = FLOOR_HIT_DESCENDING;
+void descending(ElevatorState * e){
+    printf("descending\n");
+    e->curr_state = DESCENDING;
+    int floor = elevio_floorSensor();
+    
+    if (floor != -1){
+        set_motor_dir(e, DIRN_STOP);
+        e->curr_state = FLOOR_HIT_DESCENDING;
     }
 }
 
-void floor_hit_descending(){
-    if (elevio_floorSensor() == new_floor){
-        set_motor_dir(DIRN_STOP);
-        new_state = STOP_DESCENDING;
+void floor_hit_descending(ElevatorState * e){
+    printf("floor hot descending, etg: %d \n", (elevio_floorSensor()+1));
+    e->last_floor = elevio_floorSensor();
+    e->curr_state = FLOOR_HIT_DESCENDING;
+    if (is_flagged(e->last_floor, DOWN)){
+        set_motor_dir(e, DIRN_STOP);
+        remove_flag(e->last_floor, DOWN);
+        e->curr_state = STOP_DESCENDING;
+        
+        if(elevio_floorSensor() != -1){
+        elevio_floorIndicator(elevio_floorSensor());
+        }
+        door_open(e);
+
+    } else /*if (order_above_curr_floor(e))*/{
+        set_motor_dir(e, DIRN_DOWN);
+        e->curr_state = DESCENDING;
+    }
+    // else {
+    //     printf("WROOONG floor hit descending\n");
+    // }
+}
+
+
+
+void stop(ElevatorState * e){
+    printf("STOPP EN HALV!! \n");
+    elevio_stopLamp(1);
+    set_motor_dir(e, DIRN_STOP);
+    init_order_table();
+    while (elevio_stopButton())
+    {
+    }
+    elevio_stopLamp(0);
+    e->curr_state = 1;
+}
+
+
+void check_obstructed(ElevatorState * e){
+    if (elevio_obstruction()){
+        e->obstructed = 1;
+        printf("Venligst ikke stå i døra... \n");
+        nanosleep(&(struct timespec){3, 0}, NULL);
+    } else if (e->obstructed == 1 && !elevio_obstruction()){
+        printf("Takk for at du flyttet deg. \n");
+        e->obstructed =0;
+        nanosleep(&(struct timespec){3, 0}, NULL);
+        elevio_doorOpenLamp(0);
     } else{
-        new_state = DESCENDING;
+        elevio_doorOpenLamp(0);
     }
+
+
 }
 
 
+void door_open(ElevatorState * e){
+    elevio_doorOpenLamp(1);
+    printf("....................\nDOOR OPEN AT FLOOR ");    
+    printf("%d\n....................\n", (elevio_floorSensor()+1));
+    nanosleep(&(struct timespec){3, 0}, NULL);
 
-void stop(){
 }
