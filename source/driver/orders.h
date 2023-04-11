@@ -35,20 +35,20 @@ void remove_flag(int floor, int col);
 int is_flagged(int floor, int dir);
 
 
-// Huffmann-table
 
 // Initialize the elevator state
 typedef struct {
     States curr_state;
     int last_floor;
     int new_floor;
+    int is_moving;      // boolean
     MotorDirection curr_dir;
-    int cab_floors[MAX_FLOORS];
-    int num_cab_floors;
-    int call_up_floors[MAX_FLOORS];
-    int num_call_up_floors;
-    int call_down_floors[MAX_FLOORS];
-    int num_call_down_floors;
+    //int cab_floors[MAX_FLOORS];
+    //int num_cab_floors;
+    //int call_up_floors[MAX_FLOORS];
+    //int num_call_up_floors;
+    //int call_down_floors[MAX_FLOORS];
+    //int num_call_down_floors;
 } ElevatorState;
 
 

@@ -53,23 +53,26 @@ int is_flagged(int floor, int dir) {
 //////////ELEVATOR METHODS////////////
 void init_queue(ElevatorState * e) {
     e->curr_state             = NEUTRAL;
-    e->num_cab_floors         = 0;
-    e->num_call_down_floors   = 0;
-    e->num_call_up_floors     = 0;
+    //e->num_cab_floors         = 0;
+    //e->num_call_down_floors   = 0;
+    //e->num_call_up_floors     = 0;
 }
 
 int order_above_curr_floor(ElevatorState * e) {
     for (int floor = e->last_floor; floor < MAX_FLOORS; floor++) {
-        if (is_flagged(floor, UP) && floor != e->last_floor) {
+        if ((is_flagged(floor, UP) || is_flagged(floor, DOWN))
+            && floor != e->last_floor) {
             return 1;
         }
     }
     return 0;
 }
 
+
 int order_below_curr_floor(ElevatorState * e) {
     for (int floor = e->last_floor; floor >= 0; floor--) {
-        if (is_flagged(floor, DOWN) && floor != e->last_floor) {
+        if ((is_flagged(floor, DOWN) || is_flagged(floor, UP))
+        && floor != e->last_floor) {
             return 1;
         }
     }

@@ -75,6 +75,7 @@ void set_motor_dir(ElevatorState * e, MotorDirection dir){
 void ascending(ElevatorState * e){
     printf("ascending\n");
     e->curr_state = ASCENDING;
+    e->is_moving = 1;
     int floor = elevio_floorSensor();
     if (floor != -1) {
         set_motor_dir(e, DIRN_STOP);
@@ -86,10 +87,15 @@ void floor_hit_ascending(ElevatorState * e){
     printf("floor_hit_ascending\n");
     e->curr_state = FLOOR_HIT_ASCENDING;
     e->last_floor = elevio_floorSensor();
+    e->is_moving = 0;
     if (is_flagged(e->last_floor, UP)){
         remove_flag(e->last_floor, UP);
         set_motor_dir(e, DIRN_STOP);
         e->curr_state = STOP_ASCENDING;
+    } else if ((e->last_floor == 3 && (is_flagged(3, DOWN)))) {   // edge case: floor=3, down-btn pressed
+        remove_flag(e->last_floor, DOWN);
+        set_motor_dir(e, DIRN_STOP);
+        e->curr_state = STOP_DESCENDING;
     } else if (order_above_curr_floor(e)){
         set_motor_dir(e, DIRN_UP);
         e->curr_state = ASCENDING;
@@ -102,6 +108,7 @@ void floor_hit_ascending(ElevatorState * e){
 void stop_ascending(ElevatorState * e){
     printf("stopAscending\n");
     e->curr_state = STOP_ASCENDING;
+    e->is_moving = 0;
 
     if (order_above_curr_floor(e)){
         set_motor_dir(e, DIRN_UP);
@@ -116,11 +123,18 @@ void stop_ascending(ElevatorState * e){
 void neutral(ElevatorState * e){
     printf("in neutral\n");
     e->curr_state = NEUTRAL;
+    e->is_moving = 0;
     printf("newfloor: %d\n", e->new_floor);
+
+    // edge case: current floor (last_floor) is not deleted from queue
+    if (is_flagged(e->last_floor, UP) || is_flagged(e->last_floor, DOWN)) {
+        remove_flag(e->last_floor, UP);
+        remove_flag(e->last_floor, DOWN);
+    }
 
     if (order_above_curr_floor(e)){       // newfloor above
         //printf("VI kom hit\n\n");
-        set_motor_dir(e, DIRN_STOP);   //Boilerplate, men) mealy
+        set_motor_dir(e, DIRN_STOP);   //Boilerplate, men mealy
         e->curr_state = STOP_ASCENDING;
         //printf("State: %d \n", e->curr_state);
     } else if (order_below_curr_floor(e)){
@@ -134,6 +148,7 @@ void neutral(ElevatorState * e){
 void stop_descending(ElevatorState * e){
     printf("stop descent\n");
     e->curr_state = STOP_DESCENDING;
+    e->is_moving = 0;
     if (order_below_curr_floor(e)){
         set_motor_dir(e, DIRN_DOWN);
         e->curr_state = DESCENDING;
@@ -146,6 +161,7 @@ void stop_descending(ElevatorState * e){
 void descending(ElevatorState * e){
     printf("descending\n");
     e->curr_state = DESCENDING;
+    e->is_moving = 1;
     int floor = elevio_floorSensor();
     if (floor != -1){
         set_motor_dir(e, DIRN_STOP);
@@ -154,14 +170,19 @@ void descending(ElevatorState * e){
 }
 
 void floor_hit_descending(ElevatorState * e){
-    printf("floor hot descending\n");
+    printf("floor hit descending\n");
     e->curr_state = FLOOR_HIT_DESCENDING;
     e->last_floor = elevio_floorSensor();
+    e->is_moving = 0;
     if (is_flagged(e->last_floor, DOWN)){
         remove_flag(e->last_floor, DOWN);
         set_motor_dir(e, DIRN_STOP);
         e->curr_state = STOP_DESCENDING;
-    } else if (order_above_curr_floor(e)){
+    } else if ((e->last_floor == 0 && (is_flagged(0, UP)))) {   // edge case: floor=0, up-btn pressed
+        remove_flag(e->last_floor, UP);
+        set_motor_dir(e, DIRN_STOP);
+        e->curr_state = STOP_DESCENDING;
+    } else if (order_below_curr_floor(e)){
         set_motor_dir(e, DIRN_DOWN);
         e->curr_state = DESCENDING;
     }
@@ -171,6 +192,6 @@ void floor_hit_descending(ElevatorState * e){
 }
 
 
-
 void stop(){
+    printf("stop\n");
 }
