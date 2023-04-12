@@ -85,7 +85,7 @@ int order_below_curr_floor(ElevatorState * e) {
 void print_table() {
     printf("\tUP\tDOWN\n");
     for (int row = MAX_FLOORS - 1; row >= 0; row--) {
-        printf("floor %d: ", row+1);
+        printf("floor %d: ", row);
         for (int col = 0; col < COLUMNS; col++) {
             printf("%d\t", is_flagged(row, col));
         }

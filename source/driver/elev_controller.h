@@ -7,6 +7,8 @@
 #include "buttons.h"
 // #include "elevator.h"
 #include "orders.h"
+#include "timer.h"
+#include "doors.h"
 
 
 // static States curr_state = NEUTRAL;
@@ -19,7 +21,6 @@ static int curr_floor = -1;
 
 // Accessors and mutators
 void set_motor_dir(ElevatorState * e, MotorDirection dir);
-
 
 void init_controller(ElevatorState * e);
 

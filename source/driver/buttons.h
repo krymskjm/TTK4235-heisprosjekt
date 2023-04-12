@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include "elevio.h"
 #include "orders.h"
+#include <time.h>
 //#include "elev_controller.h"
 
 void button_poller(ElevatorState * e);
+
+void stop_button_poller();
 
 void darken_buttons(ElevatorState * e, int floor);
 
