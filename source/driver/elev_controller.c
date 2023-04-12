@@ -78,22 +78,29 @@ void ascending(ElevatorState * e){
     e->is_moving = 1;
     int floor = elevio_floorSensor();
     if (floor != -1) {
-        set_motor_dir(e, DIRN_STOP);
+        //set_motor_dir(e, DIRN_STOP);
         e->curr_state = FLOOR_HIT_ASCENDING;
     }
+    
 }
 
 void floor_hit_ascending(ElevatorState * e){
     printf("floor_hit_ascending\n");
     e->curr_state = FLOOR_HIT_ASCENDING;
     e->last_floor = elevio_floorSensor();
-    e->is_moving = 0;
+    //e->is_moving = 0;
     if (is_flagged(e->last_floor, UP)){
         remove_flag(e->last_floor, UP);
+        // deluminate button(s)
+        darken_buttons(e, e->last_floor);
+
         set_motor_dir(e, DIRN_STOP);
         e->curr_state = STOP_ASCENDING;
     } else if ((e->last_floor == 3 && (is_flagged(3, DOWN)))) {   // edge case: floor=3, down-btn pressed
         remove_flag(e->last_floor, DOWN);
+        // deluminate button(s)
+        darken_buttons(e, e->last_floor);
+
         set_motor_dir(e, DIRN_STOP);
         e->curr_state = STOP_DESCENDING;
     } else if (order_above_curr_floor(e)){
@@ -130,6 +137,8 @@ void neutral(ElevatorState * e){
     if (is_flagged(e->last_floor, UP) || is_flagged(e->last_floor, DOWN)) {
         remove_flag(e->last_floor, UP);
         remove_flag(e->last_floor, DOWN);
+        // deluminate button(s)
+        darken_buttons(e, e->last_floor);
     }
 
     if (order_above_curr_floor(e)){       // newfloor above
@@ -164,7 +173,7 @@ void descending(ElevatorState * e){
     e->is_moving = 1;
     int floor = elevio_floorSensor();
     if (floor != -1){
-        set_motor_dir(e, DIRN_STOP);
+        //set_motor_dir(e, DIRN_STOP);
         e->curr_state = FLOOR_HIT_DESCENDING;
     }
 }
@@ -173,13 +182,19 @@ void floor_hit_descending(ElevatorState * e){
     printf("floor hit descending\n");
     e->curr_state = FLOOR_HIT_DESCENDING;
     e->last_floor = elevio_floorSensor();
-    e->is_moving = 0;
+    //e->is_moving = 0;
     if (is_flagged(e->last_floor, DOWN)){
         remove_flag(e->last_floor, DOWN);
         set_motor_dir(e, DIRN_STOP);
+        // deluminate button(s)
+        darken_buttons(e, e->last_floor);
+
         e->curr_state = STOP_DESCENDING;
     } else if ((e->last_floor == 0 && (is_flagged(0, UP)))) {   // edge case: floor=0, up-btn pressed
         remove_flag(e->last_floor, UP);
+        // deluminate button(s)
+        darken_buttons(e, e->last_floor);
+
         set_motor_dir(e, DIRN_STOP);
         e->curr_state = STOP_DESCENDING;
     } else if (order_below_curr_floor(e)){

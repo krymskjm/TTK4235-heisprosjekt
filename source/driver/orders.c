@@ -23,6 +23,7 @@ void set_flag(int floor, int col) {
     order_table[floor][col].flagged = 1;
 }
 
+// remove flagged order in OrderList and stop illuminate_button
 void remove_flag(int floor, int col) {
     // illegal orders
     if (floor < 0 || floor >= MAX_FLOORS) {

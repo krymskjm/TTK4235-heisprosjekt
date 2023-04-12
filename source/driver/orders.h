@@ -10,6 +10,7 @@
 #define COLUMNS    2
 #define UP         0
 #define DOWN       1
+#define CABINE     2
 
 typedef enum{
     NEUTRAL = 1,
@@ -29,7 +30,10 @@ typedef struct {
 
 ////////////OrderTable//////////////
 void init_order_table();
+// set flag in Order_Table
+// TODO: illuminate button
 void set_flag(int floor, int col);
+// TODO: deluminate button
 void remove_flag(int floor, int col);
 // dir: 0 = UP, 1 = DOWN
 int is_flagged(int floor, int dir);

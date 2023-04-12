@@ -1,6 +1,4 @@
-#include <stdio.h>
 #include "buttons.h"
-#include "elevio.h"
 
 
 void button_poller(ElevatorState * e){
@@ -9,9 +7,10 @@ void button_poller(ElevatorState * e){
     for(int floor = 0; floor < N_FLOORS; floor++){
         for(int b = 0; b < N_BUTTONS; b++){
             int btnPressed = elevio_callButton(floor, b); // returnerer 1 ved knapptrykk 0 ellers
-            elevio_buttonLamp(floor, b, btnPressed);
+            //elevio_buttonLamp(floor, b, btnPressed);
             if (btnPressed) {
                 // verdi til b ved heispaneltrykk gir 2, ned gir 1 og opp gir 0
+                elevio_buttonLamp(floor, b, btnPressed);    // illuminate button. delumination occurs in remove_flag
                 printf("pressed button %d\n", b);
 
                 // TODO: Add buttonpressed to queue
@@ -45,3 +44,10 @@ void button_poller(ElevatorState * e){
         }
     }
 }
+
+void darken_buttons(ElevatorState * e, int floor) {
+    elevio_buttonLamp(e->last_floor, UP, 0);
+    elevio_buttonLamp(e->last_floor, DOWN, 0);
+    elevio_buttonLamp(e->last_floor, CABINE, 0);
+}
+
