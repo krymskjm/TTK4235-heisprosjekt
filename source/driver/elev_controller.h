@@ -5,48 +5,38 @@
 #include <assert.h>
 #include "elevio.h"
 #include "buttons.h"
-#include "elevator.h"
+// #include "elevator.h"
 #include "orders.h"
+#include "timer.h"
+#include "doors.h"
 
-typedef enum{
-    ASCENDING = 0,
-    FLOOR_HIT_ASCENDING,
-    STOP_ASCENDING,
-    NEUTRAL,
-    DESCENDING,
-    FLOOR_HIT_DESCENDING,
-    STOP_DESCENDING,
-    STOP
-} States;
 
-static States curr_state = NEUTRAL;
+// static States curr_state = NEUTRAL;
 static int between_floors = -1;
 static int new_state = NEUTRAL;
 static MotorDirection curr_motor_dir;
-static int curr_floor;
+static int curr_floor = -1;
+// static int new_floor;
 
-void init();
 
-void update_state();
+// Accessors and mutators
+void set_motor_dir(ElevatorState * e, MotorDirection dir);
 
-void set_motor_dir(MotorDirection dir);
+void init_controller(ElevatorState * e);
 
 void illuminate_btn();
 
-void ascending();
 
-void floor_hit_ascending();
+// Aksjoner og transisjoner i FSM
+void update_state(ElevatorState * e);
 
-void stop_ascending();
-
-void neutral();
-
-void descending();
-
-void floor_hit_descending();
-
-void stop_descending();
-
+void ascending(ElevatorState * e);
+void floor_hit_ascending(ElevatorState * e);
+void stop_ascending(ElevatorState * e);
+void neutral(ElevatorState * e);
+void descending(ElevatorState * e);
+void floor_hit_descending(ElevatorState * e);    
+void stop_descending(ElevatorState * e);
 void stop();
 
 #endif
