@@ -16,13 +16,21 @@ void init_controller(ElevatorState * e) {
         set_motor_dir(e, DIRN_DOWN);
     }
     set_motor_dir(e, DIRN_STOP);
-    if (elevio_floorSensor() != -1)
+    if (elevio_floorSensor() != -1) {
         e->last_floor = elevio_floorSensor();
+        elevio_floorIndicator(e->last_floor);
+    }
     e->curr_dir = DIRN_STOP;
 }
 
 void update_state(ElevatorState * e){
-    if (elevio_floorSensor() == -1) return;
+    if (elevio_stopButton()) {
+        e->curr_state = STOP;
+    }
+    else if (elevio_floorSensor() == -1 && !e->after_stop_state) {
+        e->after_stop_state = 0;
+        return;
+    }
     switch (e->curr_state)
     {
     case ASCENDING:
@@ -47,7 +55,7 @@ void update_state(ElevatorState * e){
         stop_descending(e);
         break;
     case STOP:
-        stop();
+        stop(e);
     default:
         break;
     }
@@ -89,8 +97,11 @@ void floor_hit_ascending(ElevatorState * e){
     e->curr_state = FLOOR_HIT_ASCENDING;
     e->last_floor = elevio_floorSensor();
     elevio_floorIndicator(e->last_floor);   // Illuminate floor
+
     //e->is_moving = 0;
     if (is_flagged(e->last_floor, UP)){
+        printf("1\n");
+
         remove_flag(e->last_floor, UP);
         // deluminate button(s)
         darken_buttons(e, e->last_floor);
@@ -100,6 +111,7 @@ void floor_hit_ascending(ElevatorState * e){
 
         e->curr_state = STOP_ASCENDING;
     } else if ((e->last_floor == 3 && (is_flagged(3, DOWN)))) {   // edge case: floor=3, down-btn pressed
+        printf("2\n");
         remove_flag(e->last_floor, DOWN);
         // deluminate button(s)
         darken_buttons(e, e->last_floor);
@@ -108,8 +120,10 @@ void floor_hit_ascending(ElevatorState * e){
         open_doors(e);
 
         e->curr_state = STOP_DESCENDING;
-    } else if (order_above_curr_floor(e)){
+    } else if (order_above_curr_floor(e)){      // POTENTIAL BUG: order_above_curr_floor is very slow.
+        printf("3\n");
         set_motor_dir(e, DIRN_UP);
+        // nanosleep(&(struct timespec){0, 20*1000*1000}, NULL);
         e->curr_state = ASCENDING;
     }
     else {
@@ -215,6 +229,28 @@ void floor_hit_descending(ElevatorState * e){
 }
 
 
-void stop(){
+void stop(ElevatorState * e){
     printf("stop\n");
+    set_motor_dir(e, DIRN_STOP);    // S4
+    init_order_table(e);             // S5
+
+
+    // TODO: L6, D3, S4-S7
+    // L6: light stopbutton when pressed
+    while (elevio_stopButton()) {
+        elevio_stopLamp(1);     // turn on stopbutton when pressed
+
+        // D3: if in floor open doors for 3 sec
+        if (elevio_floorSensor() != -1) {     // returns -1 if between floors
+            open_doors(e);
+        }
+        else {
+            nanosleep(&(struct timespec){0, 200*1000*1000}, NULL);
+        }
+        
+    }
+    elevio_stopLamp(0);     // turn off stopbutton
+    // TODO: transition to NEUTRAL
+    e->curr_state = NEUTRAL;
+    e->after_stop_state = 1;
 }

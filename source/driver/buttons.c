@@ -4,12 +4,15 @@
 void button_poller(ElevatorState * e){
 
     //////////Handle buttons -> elevator action/////////////
+
+    stop_button_poller(e);
     for(int floor = 0; floor < N_FLOORS; floor++){
         for(int b = 0; b < N_BUTTONS; b++){
             int btnPressed = elevio_callButton(floor, b); // returnerer 1 ved knapptrykk 0 ellers
             //elevio_buttonLamp(floor, b, btnPressed);
             if (btnPressed) {
                 // verdi til b ved heispaneltrykk gir 2, ned gir 1 og opp gir 0
+
 
                 printf("pressed button %d\n", b);
 
@@ -50,6 +53,8 @@ void darken_buttons(ElevatorState * e, int floor) {
     elevio_buttonLamp(e->last_floor, CABINE, 0);
 }
 
-void stop_button_poller() {
-    // printf("stop: %d\n", elevio_stopButton());
+void stop_button_poller(ElevatorState * e) {
+    if (elevio_stopButton()) {
+        e->curr_state = STOP;
+    }
 }

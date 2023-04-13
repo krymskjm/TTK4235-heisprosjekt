@@ -37,6 +37,6 @@ void neutral(ElevatorState * e);
 void descending(ElevatorState * e);
 void floor_hit_descending(ElevatorState * e);    
 void stop_descending(ElevatorState * e);
-void stop();
+void stop(ElevatorState * e);
 
 #endif
