@@ -3,10 +3,13 @@
 
 Order_table order_table[MAX_FLOORS][COLUMNS];     // 2 columns: 0 = UP, 1 = DOWN
 
-void init_order_table() {
+void init_order_table(ElevatorState * e) {
     for (int row = 0; row < MAX_FLOORS; row++) {
         for (int col = 0; col < COLUMNS; col++) {
             remove_flag(row, col);
+            elevio_buttonLamp(row, UP, 0);
+            elevio_buttonLamp(row, DOWN, 0);
+            elevio_buttonLamp(row, CABINE, 0);
         }
     }
 }
@@ -19,8 +22,8 @@ void set_flag(ElevatorState * e, int floor, int col, int dir) {
     else if (col < 0 || col >= COLUMNS) {
         printf("Illegal column: %d\n", col);
     }
-    if (!((e->curr_state == NEUTRAL) && (e->last_floor == floor))) {
-        elevio_buttonLamp(floor, (ButtonType)col, 1);    // illuminate button. delumination occurs in remove_flag
+    if (!((e->curr_state == NEUTRAL) && (e->last_floor == elevio_floorSensor()))) {
+        elevio_buttonLamp(floor, (ButtonType)col, 1);    // illuminate button.
     }
 
     order_table[floor][dir].flagged = 1;
@@ -35,6 +38,8 @@ void remove_flag(int floor, int col) {
     else if (col < 0 || col >= COLUMNS) {
         printf("Illegal column: %d\n", col);
     }
+
+    
 
     order_table[floor][col].flagged = 0;
 }
@@ -56,10 +61,9 @@ int is_flagged(int floor, int dir) {
 
 //////////ELEVATOR METHODS////////////
 void init_queue(ElevatorState * e) {
-    e->curr_state             = NEUTRAL;
-    //e->num_cab_floors         = 0;
-    //e->num_call_down_floors   = 0;
-    //e->num_call_up_floors     = 0;
+    e->curr_state = NEUTRAL;
+    e->is_moving = 0;
+    e->after_stop_state = 0;
 }
 
 int order_above_curr_floor(ElevatorState * e) {

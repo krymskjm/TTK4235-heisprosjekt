@@ -33,7 +33,8 @@ typedef struct {
     States curr_state;
     int last_floor;
     int new_floor;
-    int is_moving;      // boolean
+    int is_moving;          // boolean
+    int after_stop_state;   // boolean
     MotorDirection curr_dir;
     //int cab_floors[MAX_FLOORS];
     //int num_cab_floors;
@@ -45,15 +46,13 @@ typedef struct {
 
 
 ////////////OrderTable//////////////
-void init_order_table();
+// clear_order_table
+void init_order_table(ElevatorState * e);
 // set flag in Order_Table
-// TODO: illuminate button
 void set_flag(ElevatorState * e, int floor, int col, int dir);
-// TODO: deluminate button
 void remove_flag(int floor, int col);
 // dir: 0 = UP, 1 = DOWN
 int is_flagged(int floor, int dir);
-
 
 
 ///////ELEVATOR_METHODS///////////
