@@ -177,6 +177,7 @@ void neutral(ElevatorState * e){
         remove_flag(e->last_floor, DOWN);
         // deluminate button(s)
         darken_buttons(e, e->last_floor);
+
         //open_doors(e);
     }
 

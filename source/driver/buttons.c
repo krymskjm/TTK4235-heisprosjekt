@@ -16,6 +16,8 @@ void button_poller(ElevatorState * e){
 
                 printf("pressed button %d\n", b);
 
+
+
                 // Add buttonpressed to queue
                 if ((b == 0 || b == 1) && (e->last_floor != floor)) {     // opp or ned knapp trykket
                     set_flag(e, floor, b, b);
@@ -41,6 +43,9 @@ void button_poller(ElevatorState * e){
                             break;
                         }
                     }
+                }
+                if ((!order_above_curr_floor(e) && !order_below_curr_floor(e))) {
+                    open_doors(e);
                 }
             }
         }
